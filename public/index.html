@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DroidRay — Bàn Điều Khiển Điện Thoại Android Qua Wi-Fi/USB, Gỡ Rác Xiaomi/Samsung & Bắt Quyền Ngầm</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- THANH HEADER COCKPIT -->
+  <header class="cockpit-header">
+    <div class="brand-area">
+      <div class="brand-logo">📱</div>
+      <div>
+        <div class="brand-title-row">
+          <h1>DroidRay <span class="version-badge">ADB Cockpit v2.0</span></h1>
+          <span class="connection-pill" id="header-conn-pill">🟢 Wi-Fi ADB Connected</span>
+        </div>
+        <p class="brand-subtitle">
+          1-Click Xiaomi HyperOS / Samsung Debloater (Không Root) • Privacy AppOps Auditor • Trình Chiếu &amp; Trích Xuất APK ➔ OSINT / Virus-Scanner
+        </p>
+      </div>
+    </div>
+
+    <!-- CHỌN THIẾT BỊ & KẾT NỐI WI-FI ADB -->
+    <div class="device-controls">
+      <div class="control-group">
+        <label for="device-select">🔌 Thiết bị đang điều khiển:</label>
+        <select id="device-select" class="cockpit-select"></select>
+      </div>
+      <div class="control-group wifi-group">
+        <input type="text" id="inp-wifi-ip" class="cockpit-input" placeholder="IP:Port (VD: 192.168.1.108:5555)" value="192.168.1.108:5555" />
+        <button class="btn btn-accent" id="btn-connect-wifi" title="Kết nối ADB không dây qua Wi-Fi">
+          📡 Kết nối Wi-Fi ADB
+        </button>
+        <button class="btn btn-ghost" id="btn-reset-demo" title="Khôi phục dữ liệu mẫu ban đầu">
+          🔄 Reset Mẫu
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- THANH KỊCH BẢN THỰC TẾ 1-CLICK & CHỈ SỐ TELEMETRY TRỰC TIẾP -->
+  <section class="telemetry-strip">
+    <div class="scenario-bar">
+      <span class="scenario-tag">🎬 Chạy thử nghiệm 1-Click:</span>
+      <button class="btn-scenario fire" id="btn-scen-debloat">
+        🔥 1. Hạ nhiệt Xiaomi 43.8°C &amp; Cứu MsgGuard khỏi bị tắt ngầm
+      </button>
+      <button class="btn-scenario spy" id="btn-scen-clipboard">
+        🕵️ 2. Bắt quả tang App lén đọc OTP &amp; tráo ví USDT lúc khóa máy
+      </button>
+      <button class="btn-scenario malware" id="btn-scen-apk">
+        🦠 3. Trích xuất APK VNeID giả ➔ Quét Virus-Scanner &amp; OSINT
+      </button>
+    </div>
+
+    <div class="telemetry-cards">
+      <div class="tele-card" id="card-temp">
+        <span class="tele-label">🌡️ Nhiệt độ CPU</span>
+        <strong class="tele-val" id="tele-temp">43.8°C</strong>
+        <span class="tele-sub" id="tele-temp-sub">Nóng do App ngầm</span>
+      </div>
+      <div class="tele-card" id="card-ram">
+        <span class="tele-label">🧠 Bộ nhớ RAM</span>
+        <strong class="tele-val" id="tele-ram">9.4 / 12 GB</strong>
+        <span class="tele-sub" id="tele-ram-sub">Đã giải phóng: 0 MB</span>
+      </div>
+      <div class="tele-card" id="card-battery">
+        <span class="tele-label">⚡ Dòng xả Pin ngầm</span>
+        <strong class="tele-val" id="tele-drain">-440 mA</strong>
+        <span class="tele-sub" id="tele-drain-sub">Tụt pin nhanh</span>
+      </div>
+      <div class="tele-card" id="card-msgguard">
+        <span class="tele-label">🛡️ MsgGuard PRO 24/7</span>
+        <strong class="tele-val" id="tele-msgguard">Bị bóp ngầm ⚠️</strong>
+        <span class="tele-sub" id="tele-msgguard-sub">Do MIUI PowerKeeper</span>
+      </div>
+      <div class="tele-card" id="card-score">
+        <span class="tele-label">🔒 Điểm An Toàn Máy</span>
+        <strong class="tele-val" id="tele-score">34 / 100</strong>
+        <span class="tele-sub" id="tele-score-sub">Cần xử lý ngay</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- THÔNG BÁO TOAST PHẢN HỒI NHANH -->
+  <div id="toast-banner" class="toast-banner hidden"></div>
+
+  <!-- BỐ CỤC CHÍNH: TRÁI = MÀN HÌNH ĐIỆN THOẠI TRỰC TIẾP | PHẢI = 3 PHÂN HỆ ĐIỀU KHIỂN -->
+  <main class="cockpit-grid">
+    <!-- CỘT TRÁI: TRÌNH CHIẾU MÀN HÌNH & ĐIỀU KHIỂN CẢM ỨNG QUA ADB -->
+    <aside class="phone-mirror-column">
+      <div class="mirror-panel">
+        <div class="mirror-header">
+          <div>
+            <h3>📲 Trình Chiếu Màn Hình Trực Tiếp</h3>
+            <p id="mirror-device-title">Xiaomi 14 Pro • HyperOS 1.0.9.0</p>
+          </div>
+          <div class="mirror-mode-switch">
+            <button class="btn-mini active" data-screen="HOME" title="Xem màn hình chính">🏠 Home</button>
+            <button class="btn-mini" data-screen="ALERT_CLIPBOARD" title="Xem cảnh báo lén đọc Clipboard">📋 Clipper</button>
+            <button class="btn-mini" data-screen="MSGGUARD" title="Xem trạng thái MsgGuard PRO">🛡️ MsgGuard</button>
+          </div>
+        </div>
+
+        <!-- KHUNG ĐIỆN THOẠI ANDROID TƯƠNG TÁC -->
+        <div class="phone-bezel" id="phone-screen-touch-area">
+          <div class="phone-statusbar">
+            <span id="phone-clock">11:45</span>
+            <div class="phone-notch"></div>
+            <div class="phone-status-icons">
+              <span>5G</span>
+              <span>📶</span>
+              <span id="phone-battery-pill">🔋 64%</span>
+            </div>
+          </div>
+
+          <!-- VÙNG HIỂN THỊ MÀN HÌNH ĐỘNG (RENDER THEO TRẠNG THÁI MÁY) -->
+          <div class="phone-viewport" id="phone-viewport"></div>
+
+          <!-- HIỆU ỨNG CHẠM CẢM ỨNG ADB INPUT TAP -->
+          <div id="touch-ripple" class="touch-ripple hidden"></div>
+
+          <!-- THANH ĐIỀU HƯỚNG ANDROID DƯỚI CÙNG -->
+          <div class="phone-navbar">
+            <button class="nav-btn" data-key="KEYCODE_BACK" title="Nút Quay lại (adb shell input keyevent 4)">◀</button>
+            <button class="nav-btn" data-key="KEYCODE_HOME" title="Nút Màn hình chính (adb shell input keyevent 3)">⏺</button>
+            <button class="nav-btn" data-key="KEYCODE_APP_SWITCH" title="Nút Đa nhiệm (adb shell input keyevent 187)">▣</button>
+          </div>
+        </div>
+
+        <!-- BỘ CÔNG CỤ ĐIỀU KHIỂN NHANH BÊN DƯỚI ĐIỆN THOẠI -->
+        <div class="mirror-quick-tools">
+          <div class="clipboard-inspector">
+            <div class="clip-header">
+              <span>📋 Nội dung Clipboard hiện tại trên điện thoại:</span>
+              <button class="btn-xs danger" id="btn-scrub-clipboard" title="Xóa sạch bộ nhớ tạm để chống app đọc trộm OTP">
+                🧹 Xóa sạch Clipboard
+              </button>
+            </div>
+            <code id="live-clipboard-text">OTP BIDV: 849201 | Ví nhận USDT: TJk9xV89mP2qL5nZ8aPq</code>
+          </div>
+
+          <div class="remote-text-sender">
+            <input type="text" id="inp-remote-text" class="cockpit-input" placeholder="Gõ chữ từ PC gửi vào điện thoại (adb input text)..." />
+            <button class="btn btn-sm" id="btn-send-text">⌨️ Gửi</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CỘT PHẢI: 3 TAB TÍNH NĂNG CỐT LÕI + CONSOLE ADB -->
+    <section class="cockpit-main-panel">
+      <!-- THANH CHUYỂN TAB -->
+      <nav class="cockpit-tabs">
+        <button class="tab-btn active" data-tab="tab-debloater">
+          🧹 1. Xiaomi / Samsung Debloater <span class="tab-badge" id="badge-bloat-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-appops">
+          🕵️ 2. Privacy AppOps Auditor (Bắt Quyền Ngầm) <span class="tab-badge danger" id="badge-ops-count">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-apk-xray">
+          📦 3. Trích Xuất APK 1-Click ➔ OSINT &amp; Virus-Scanner <span class="tab-badge accent" id="badge-apk-count">0</span>
+        </button>
+      </nav>
+
+      <!-- ================================================================== -->
+      <!-- TAB 1: 1-CLICK XIAOMI / SAMSUNG DEBLOATER & BẢO VỆ APP QUAN TRỌNG -->
+      <!-- ================================================================== -->
+      <div class="tab-content active" id="tab-debloater">
+        <div class="action-hero-banner">
+          <div class="hero-info">
+            <h2>🚀 1-Click Xiaomi HyperOS / Samsung One UI Debloater (Không Cần Root)</h2>
+            <p>
+              Sử dụng cơ chế <code>pm uninstall -k --user 0</code> và <code>cmd package install-existing</code> chuẩn của Android để gỡ sạch Quảng cáo ngầm (MSA, Analytics, Daemon, Rubin), ngăn <strong>PowerKeeper / GOS</strong> tự đóng ứng dụng quan trọng (như <strong>MsgGuard PRO</strong>) và khôi phục an toàn bất cứ lúc nào mà không mất bảo hành.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" id="btn-debloat-all-safe">
+              🧹 1-Click Gỡ Sạch Quảng Cáo &amp; Theo Dõi Ngầm
+            </button>
+            <button class="btn btn-danger btn-lg" id="btn-purge-spyware">
+              🚨 1-Click Tiêu Diệt &amp; Thu Giữ APK Độc Hại
+            </button>
+            <button class="btn btn-emerald" id="btn-protect-msgguard">
+              🛡️ Bật Bất Tử 24/7 Cho MsgGuard PRO
+            </button>
+            <button class="btn btn-ghost" id="btn-restore-all-pkgs">
+              ♻️ Khôi Phục Toàn Bộ Gói
+            </button>
+          </div>
+        </div>
+
+        <!-- BỘ LỌC DANH MỤC GÓI ỨNG DỤNG -->
+        <div class="filter-toolbar">
+          <div class="filter-pills" id="pkg-filter-pills">
+            <button class="pill active" data-cat="ALL">Tất cả gói</button>
+            <button class="pill" data-cat="ADS_TRACKER">📢 Quảng cáo &amp; Theo dõi (MSA/Analytics/Rubin)</button>
+            <button class="pill" data-cat="BATTERY_KILLER">🔥 Gây nóng &amp; Tự đóng App (PowerKeeper/GOS)</button>
+            <button class="pill" data-cat="BLOATWARE">🗑️ App rác cài sẵn (GetApps/Meta)</button>
+            <button class="pill danger" data-cat="SUSPICIOUS_SPYWARE">🚨 Nghi vấn Mã độc / Giả mạo</button>
+            <button class="pill emerald" data-cat="USER_ESSENTIAL">🛡️ App Quan trọng (MsgGuard/Zalo/Bank)</button>
+          </div>
+          <input type="search" id="inp-pkg-search" class="cockpit-input search-box" placeholder="🔍 Tìm tên gói hoặc ứng dụng (VD: msa, powerkeeper, vneid, msgguard)..." />
+        </div>
+
+        <!-- DANH SÁCH GÓI ỨNG DỤNG CHI TIẾT -->
+        <div class="pkg-list-container" id="pkg-list-container"></div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- TAB 2: PRIVACY APPOPS AUDITOR (SOI LỊCH SỬ QUYỀN NGẦM & KHÓA CỨNG) -->
+      <!-- ================================================================== -->
+      <div class="tab-content" id="tab-appops">
+        <div class="action-hero-banner danger-theme">
+          <div class="hero-info">
+            <h2>🕵️ Privacy AppOps Auditor — Bắt Quả Tang Truy Cập Ngầm Lúc Khóa Màn Hình</h2>
+            <p>
+              Phân tích nhật ký <code>dumpsys appops</code> để phát hiện chính xác ứng dụng nào vừa lén đọc <strong>Bộ nhớ tạm (Clipboard chứa OTP/Ví Crypto)</strong>, bật <strong>Định vị GPS</strong>, <strong>Micro</strong>, <strong>Camera</strong> hoặc chiếm quyền <strong>Accessibility</strong> khi màn hình đang tắt. Khóa cứng bằng lệnh <code>cmd appops set &lt;pkg&gt; &lt;OP&gt; ignore</code> (trả về dữ liệu rỗng khiến mã độc bị mù hoàn toàn).
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="btn btn-danger btn-lg" id="btn-lock-all-screenoff">
+              🔒 1-Click Khóa Cứng Toàn Bộ Quyền Ngầm Lúc Khóa Màn Hình
+            </button>
+            <button class="btn btn-accent" id="btn-simulate-clip-spy">
+              ⚡ Giả Lập Sự Kiện App Lén Đọc Clipboard Ngay Bây Giờ
+            </button>
+          </div>
+        </div>
+
+        <!-- BỘ LỌC SỰ KIỆN APPOPS -->
+        <div class="filter-toolbar">
+          <div class="filter-pills" id="ops-filter-pills">
+            <button class="pill active" data-op="ALL">Tất cả hành vi</button>
+            <button class="pill danger" data-op="SCREEN_OFF_LOCKED">🌙 Lúc khóa màn hình (Screen-Off)</button>
+            <button class="pill" data-op="READ_CLIPBOARD">📋 Đọc trộm Clipboard</button>
+            <button class="pill" data-op="AUDIO_CAMERA">🎙️📷 Micro &amp; Camera ngầm</button>
+            <button class="pill" data-op="LOCATION">📍 Định vị GPS ngầm</button>
+            <button class="pill" data-op="SMS_ACCESSIBILITY">💬♿ Đọc SMS OTP &amp; Accessibility</button>
+          </div>
+        </div>
+
+        <!-- BẢNG TIMELINE VI PHẠM APPOPS -->
+        <div class="appops-list-container" id="appops-list-container"></div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- TAB 3: TRÍCH XUẤT APK 1-CLICK & ĐẨY SANG OSINT / VIRUS-SCANNER     -->
+      <!-- ================================================================== -->
+      <div class="tab-content" id="tab-apk-xray">
+        <div class="action-hero-banner purple-theme">
+          <div class="hero-info">
+            <h2>📦 Trích Xuất APK 1-Click (<code>adb pull</code>) &amp; Liên Thông OSINT-Dashboard / Virus-Scanner</h2>
+            <p>
+              Trích xuất trực tiếp file nhị phân <code>.APK</code> của bất kỳ ứng dụng nào từ điện thoại Android ra máy tính PC, tự động giải phẫu <code>AndroidManifest.xml</code>, <code>classes.dex</code>, trích xuất tên miền/IP C2, sinh quy tắc <strong>YARA</strong> và đẩy thẳng sang <strong>OSINT-Dashboard (Port 4090)</strong> hoặc <strong>Virus-Scanner (Microsoft Defender)</strong>.
+            </p>
+          </div>
+          <div class="hero-actions apk-picker-row">
+            <select id="apk-extract-select" class="cockpit-select"></select>
+            <button class="btn btn-primary" id="btn-extract-selected-apk">
+              📥 1-Click Trích Xuất .APK Ra PC
+            </button>
+            <button class="btn btn-danger" id="btn-push-selected-osint">
+              🚀 Đẩy Sang OSINT-Dashboard (Port 4090)
+            </button>
+            <button class="btn btn-emerald" id="btn-scan-selected-virus">
+              🛡️ Quét Bằng Virus-Scanner (Defender)
+            </button>
+          </div>
+        </div>
+
+        <!-- KẾT QUẢ MỔ XẺ CHI TIẾT APK & CẦU NỐI HỆ SINH THÁI -->
+        <div class="xray-workspace" id="xray-workspace">
+          <div class="xray-empty-state">
+            Bấm nút <strong>"📦 Trích xuất .APK"</strong> ở bất kỳ ứng dụng nào hoặc chọn ứng dụng trên thanh công cụ để bắt đầu mổ xẻ mã độc!
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================== -->
+      <!-- CONSOLE NHẬT KÝ LỆNH ADB TRỰC TIẾP (LIVE ADB SHELL TERMINAL)       -->
+      <!-- ================================================================== -->
+      <section class="adb-console-section">
+        <div class="console-header">
+          <div class="console-title">
+            <span class="dot-live"></span>
+            <strong>💻 ADB Shell Live Stream &amp; Command Console</strong>
+            <span class="console-path" id="adb-bin-label">adb.exe ready</span>
+          </div>
+          <form id="form-adb-shell" class="console-form">
+            <span class="prompt-dollar">adb $</span>
+            <input type="text" id="inp-adb-cmd" placeholder="Nhập lệnh ADB (VD: devices -l, shell pm list packages -3, shell dumpsys battery)..." />
+            <button type="submit" class="btn btn-sm btn-accent">Chạy Lệnh</button>
+          </form>
+        </div>
+        <div class="console-log-box" id="adb-log-box"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

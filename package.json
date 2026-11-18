@@ -1,0 +1,12 @@
+{
+  "name": "android-adb-cockpit",
+  "version": "2.0.0",
+  "description": "DroidRay — Bàn Điều Khiển Điện Thoại Android Qua Wi-Fi/USB, 1-Click Xiaomi/Samsung Debloater, Privacy AppOps Auditor & Trích Xuất APK",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
